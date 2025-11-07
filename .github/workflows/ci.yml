@@ -1,4 +1,4 @@
-name: Full CI/CD - Tic-Toc-Toe Frontend + Flask Backend
+name: Flask CI Pipeline - Tic Tac Toe
 
 on:
   push:
@@ -6,55 +6,8 @@ on:
       - main
   pull_request:
 
-permissions:
-  contents: write  # required for gh-pages deployment
-
 jobs:
-  # -------------------------------
-  # FRONTEND JOB - Build & Deploy
-  # -------------------------------
-  frontend-deploy:
-    name: Build & Deploy Frontend
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install dependencies
-        run: |
-          if [ -f package.json ]; then
-            npm ci
-          else
-            echo "No package.json found, skipping npm install"
-          fi
-
-      - name: Build project
-        run: |
-          if [ -f package.json ]; then
-            npm run build
-          else
-            echo "No build step defined"
-          fi
-
-      - name: Deploy to GitHub Pages
-        uses: JamesIves/github-pages-deploy-action@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}   # ✅ needed for auth
-          branch: gh-pages                     # target branch
-          folder: build                        # adjust to your build folder
-
-  # -------------------------------
-  # BACKEND JOB - Flask CI (Tests & Lint)
-  # -------------------------------
-  backend-ci:
+  flask-ci:
     name: Test & Lint Flask App
     runs-on: ubuntu-latest
 
@@ -72,11 +25,12 @@ jobs:
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-      - name: Run tests
+      - name: Run tests (if any)
         run: |
           if [ -d tests ]; then pytest -v; else echo "No tests found"; fi
 
       - name: Lint code
         run: |
           pip install flake8
+          echo "Running Python lint check..."
           flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics || true
